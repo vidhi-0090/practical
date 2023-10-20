@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\NoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::any('/changePassword', [UserController::class, 'changePassword'])->name('changePassword');
 
     Route::resource('tasks', TaskController::class);
+
+    Route::resource('notes', NoteController::class);
 
 });
 

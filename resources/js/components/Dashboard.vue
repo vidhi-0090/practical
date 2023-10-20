@@ -32,6 +32,19 @@
                                 ToDo
                             </router-link>
 
+                            <router-link
+                                v-if="authStore.getters.getIsAuthenticated != 0"
+                                :to="'/notes'"
+                                :class="{
+                                    'bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path === '/notes',
+                                    'text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path !== '/notes',
+                                }"
+                            >
+                                Notes
+                            </router-link>
+
                             <button
                                 v-if="authStore.getters.getIsAuthenticated != 0"
                                 @click="logout"
@@ -1141,10 +1154,13 @@ const saveData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
+                bookDataLength.value = bookData.value.length;
+                updateCollection();
+                updatePaginator();
             } catch (error) {}
         } else {
             console.log(response.data);
@@ -1205,7 +1221,7 @@ const editData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
@@ -1246,7 +1262,7 @@ const deleteData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
@@ -1297,7 +1313,7 @@ const closeModal = async () => {
     showModal.value = false;
     showPasswordModel.value = false;
     try {
-        const user_data = await axios.get("/api/users");
+        const user_data = await axios.get(baseUrl.value + "api/users");
         username.value = user_data.data.data.name;
         email.value = user_data.data.data.email;
         bookData.value = user_data.data.book;
@@ -1442,5 +1458,4 @@ onMounted(() => {
     background-color: #9b2925;
     color: white;
 }
-
 </style>
