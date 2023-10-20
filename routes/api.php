@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->get('/dashboard/{id}', [HomeController::class
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dashboard/{id}', [HomeController::class, 'dashboard'])->name('home');
+
     Route::any('users', [UserController::class, 'get_users'])->name('get_users');
 
     Route::resource('books', BookController::class);
@@ -40,6 +42,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::any('/booksFilter', [BookController::class, 'booksFilter'])->name('booksFilter');
     Route::any('/serverBooksFilter', [BookController::class, 'serverBooksFilter'])->name('serverBooksFilter');
     Route::any('/changePassword', [UserController::class, 'changePassword'])->name('changePassword');
+
+    Route::resource('tasks', TaskController::class);
+
 });
 
 Route::post('/register', [RegisterController::class, 'store']);

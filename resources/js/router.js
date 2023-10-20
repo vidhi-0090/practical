@@ -3,6 +3,7 @@ import Register from "./components/Register.vue";
 import Login from "./components/Login.vue";
 import Logout from "./components/Logout.vue";
 import Dashboard from "./components/Dashboard.vue";
+import Todo from "./components/TodoApp.vue";
 import store from "./store/auth.js";
 
 const routes = [
@@ -42,6 +43,11 @@ const routes = [
         meta: {
             requiresAuth: true,
         },
+    },
+    {
+        path: "/todo",
+        name: "Todo",
+        component: Todo,
     },
 ];
 
