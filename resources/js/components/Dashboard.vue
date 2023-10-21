@@ -20,6 +20,31 @@
                                 Dashboard
                             </router-link>
 
+                            <router-link
+                                to="/todo"
+                                :class="{
+                                    'bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path === '/todo',
+                                    'text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path !== '/todo',
+                                }"
+                            >
+                                ToDo
+                            </router-link>
+
+                            <router-link
+                                v-if="authStore.getters.getIsAuthenticated != 0"
+                                :to="'/notes'"
+                                :class="{
+                                    'bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path === '/notes',
+                                    'text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium':
+                                        $route.path !== '/notes',
+                                }"
+                            >
+                                Notes
+                            </router-link>
+
                             <button
                                 v-if="authStore.getters.getIsAuthenticated != 0"
                                 @click="logout"
@@ -80,12 +105,18 @@
                 </select>
             </div>
 
-            <input
+            <!-- <input
                 @keyup="searchData()"
                 type="search"
                 placeholder="Search"
                 v-model="search"
-            />
+            /> -->
+                <input
+                    @keyup="search"
+                    type="search"
+                    placeholder="Search"
+                    v-model="search"
+                />
 
             <br />
             <br />
@@ -158,6 +189,7 @@
                         </th>
                     </tr>
                 </thead>
+
                 <tbody class="acc acg">
                     <p
                         style="color: red"
@@ -169,19 +201,18 @@
                         </span>
                     </p>
 
-                    <!-- <tr
-                        class=""
-                        v-for="data in bookData.value"
-                        :key="data"
-                        style="border: 1px solid black"
-                    > -->
-
                     <tr
                         class=""
-                        v-for="data in collection"
-                        :key="data"
+                        v-for="data in searchedData"
+                        :key="data.id"
                         style="border: 1px solid black"
                     >
+                        <!-- <tr
+                            class=""
+                            v-for="data in collection"
+                            :key="data"
+                            style="border: 1px solid black"
+                        > -->
                         <td
                             class=""
                             style="border: 1px solid black; padding: 5px"
@@ -346,15 +377,6 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="">
-                                    <p
-                                        style="color: red"
-                                        v-for="error in success"
-                                        :key="error"
-                                    >
-                                        <span v-for="err in error" :key="err">
-                                            {{ err }}
-                                        </span>
-                                    </p>
                                     <form @submit.prevent="saveData()">
                                         <div class="input_field">
                                             <span
@@ -442,7 +464,7 @@
                                                             icon="inr"
                                                     /></span>
                                                     <input
-                                                        type="text"
+                                                        type="number"
                                                         name="price"
                                                         v-model="form.price"
                                                         placeholder="Price"
@@ -579,15 +601,6 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="">
-                                    <p
-                                        style="color: red"
-                                        v-for="error in success"
-                                        :key="error"
-                                    >
-                                        <span v-for="err in error" :key="err">
-                                            {{ err }}
-                                        </span>
-                                    </p>
                                     <form @submit.prevent="editData()">
                                         <div class="input_field">
                                             <span
@@ -691,7 +704,7 @@
                                                             icon="inr"
                                                     /></span>
                                                     <input
-                                                        type="text"
+                                                        type="number"
                                                         name="price"
                                                         v-model="editPrice"
                                                         placeholder="Price"
@@ -820,15 +833,6 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="">
-                                    <p
-                                        style="color: red"
-                                        v-for="error in success"
-                                        :key="error"
-                                    >
-                                        <span v-for="err in error" :key="err">
-                                            {{ err }}
-                                        </span>
-                                    </p>
                                     <form @submit.prevent="deleteData()">
                                         <div class="input_field">
                                             <input
@@ -896,15 +900,6 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="">
-                                    <p
-                                        style="color: red"
-                                        v-for="error in success"
-                                        :key="error"
-                                    >
-                                        <span v-for="err in error" :key="err">
-                                            {{ err }}
-                                        </span>
-                                    </p>
                                     <form @submit.prevent="changePassword()">
                                         <div class="input_field">
                                             <input
@@ -960,7 +955,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onUpdated } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "../axios.js";
 import Modal from "./Modal.vue";
@@ -1022,10 +1017,8 @@ const errors = reactive({
     current_password: "",
     password_confirmation: "",
 });
-const success = reactive({});
+
 const searchDataNotFound = reactive({});
-const searchRequired = reactive({});
-const alerts = reactive({});
 const bookData = reactive({});
 const search = ref("");
 const bookDataLength = ref(0);
@@ -1036,6 +1029,22 @@ const pagination = ref({});
 const datatable = ref(null);
 
 const user_id = ref(route.params.user_id);
+
+const searchedData = computed(() => {
+    const searchValue = search.value.toLowerCase();
+    return collection.value.filter((data) => {
+        return (
+            data.name.toLowerCase().includes(searchValue) ||
+            data.description.toLowerCase().includes(searchValue) ||
+            data.no_of_page.toString().toLowerCase().includes(searchValue) ||
+            data.author.toLowerCase().includes(searchValue) ||
+            data.category.toLowerCase().includes(searchValue) ||
+            data.price.toString().toLowerCase().includes(searchValue) ||
+            data.released_year.toString().toLowerCase().includes(searchValue) ||
+            data.status.toString().toLowerCase().includes(searchValue)
+        );
+    });
+});
 
 const setPage = async (p) => {
     try {
@@ -1086,25 +1095,24 @@ const fetchUser = async () => {
     }
 };
 
-const searchData = async () => {
-    try {
-        const search_datas = await axios.get(
-            "/api/searchData?search=" + search.value
-        );
-
-        if (search_datas.data.status === false) {
-            searchDataNotFound.value = "";
-        } else {
-            if (search_datas.data.book.length == 0) {
-                bookData.value = search_datas.data.book;
-                searchDataNotFound.value = search_datas.data.message;
-            } else {
-                bookData.value = search_datas.data.book;
-                searchDataNotFound.value = "";
-            }
-        }
-    } catch (error) {}
-};
+// const searchData = async () => {
+//     try {
+//         const search_datas = await axios.get(
+//             "/api/searchData?search=" + search.value
+//         );
+//         if (search_datas.data.status === false) {
+//             searchDataNotFound.value = "";
+//         } else {
+//             if (search_datas.data.book.length == 0) {
+//                 bookData.value = search_datas.data.book;
+//                 searchDataNotFound.value = search_datas.data.message;
+//             } else {
+//                 bookData.value = search_datas.data.book;
+//                 searchDataNotFound.value = "";
+//             }
+//         }
+//     } catch (error) {}
+// };
 
 const saveData = async () => {
     try {
@@ -1120,7 +1128,6 @@ const saveData = async () => {
             userId: route.params.user_id,
         });
         if (response.data.status === true) {
-            success.value = response.data.message;
             showModal.value = false;
             Swal.fire({
                 icon: "success",
@@ -1129,21 +1136,57 @@ const saveData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
+                bookDataLength.value = bookData.value.length;
+                updateCollection();
+                updatePaginator();
             } catch (error) {}
+
+            form.value.name = "";
+            form.value.description = "";
+            form.value.no_of_page = "";
+            form.value.author = "";
+            form.value.category = "";
+            form.value.price = "";
+            form.value.released_year = "";
+            (form.value.status = ""), (form.value.userId = "");
+
+            errors.name = "";
+            errors.no_of_page = "";
+            errors.author = "";
+            errors.category = "";
+            errors.price = "";
+            errors.released_year = "";
+            errors.status = "";
+            errors.description = "";
+            errors.password = "";
+            errors.current_password = "";
+            errors.password_confirmation = "";
         } else {
-            console.log(response.data);
+            errors.name = "";
+            errors.no_of_page = "";
+            errors.author = "";
+            errors.category = "";
+            errors.price = "";
+            errors.released_year = "";
+            errors.status = "";
+            errors.description = "";
+            errors.password = "";
+            errors.current_password = "";
+            errors.password_confirmation = "";
+
             const responseErrors = response.data.message;
-            for (const field in responseErrors) {
-                if (field in errors) {
-                    errors[field] = responseErrors[field][0];
+            if (responseErrors) {
+                for (const field in responseErrors) {
+                    if (field in errors) {
+                        errors[field] = responseErrors[field][0];
+                    }
                 }
             }
         }
-        datatable.value = $(".bookDatatable").DataTable().ajax.reload();
     } catch (error) {
         console.log(error);
     }
@@ -1184,7 +1227,6 @@ const editData = async () => {
         );
 
         if (edit_response.data.status === true) {
-            success.value = edit_response.data.message;
             showEditModal.value = false;
             Swal.fire({
                 icon: "success",
@@ -1193,13 +1235,22 @@ const editData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
             } catch (error) {}
         } else {
-            // console.log(response.data);
+            errors.name = "";
+            errors.no_of_page = "";
+            errors.author = "";
+            errors.category = "";
+            errors.price = "";
+            errors.released_year = "";
+            errors.description = "";
+            errors.password = "";
+            errors.current_password = "";
+            errors.password_confirmation = "";
             const responseErrors = edit_response.data.message;
             for (const field in responseErrors) {
                 if (field in errors) {
@@ -1234,7 +1285,7 @@ const deleteData = async () => {
             });
             datatable.value = $(".bookDatatable").DataTable().ajax.reload();
             try {
-                const user_data = await axios.get("/api/users");
+                const user_data = await axios.get(baseUrl.value + "api/users");
                 username.value = user_data.data.data.name;
                 email.value = user_data.data.data.email;
                 bookData.value = user_data.data.book;
@@ -1258,7 +1309,6 @@ const changePassword = async () => {
             }
         );
         if (response.data.status === true) {
-            success.value = response.data.message;
             showPasswordModel.value = false;
             Swal.fire({
                 icon: "success",
@@ -1285,7 +1335,7 @@ const closeModal = async () => {
     showModal.value = false;
     showPasswordModel.value = false;
     try {
-        const user_data = await axios.get("/api/users");
+        const user_data = await axios.get(baseUrl.value + "api/users");
         username.value = user_data.data.data.name;
         email.value = user_data.data.data.email;
         bookData.value = user_data.data.book;
@@ -1409,6 +1459,10 @@ onMounted(() => {
     setPage(1);
     initDataTable();
 });
+
+onUpdated(() => {
+    updatePaginator();
+})
 </script>
 
 <style lang="scss" scoped>
@@ -1430,5 +1484,4 @@ onMounted(() => {
     background-color: #9b2925;
     color: white;
 }
-
 </style>

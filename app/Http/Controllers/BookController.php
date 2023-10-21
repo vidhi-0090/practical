@@ -51,7 +51,7 @@ class BookController extends Controller
             'author' => ['required'],
             'category' => ['required'],
             'price' => ['required', 'numeric'],
-            'released_year' => ['required','numeric','before:'.date('Y')],
+            'released_year' => ['required','numeric','before:'.date('Y'),'min:1900','max:' . date('Y')],
             'status' => ['required'],
         ]);
 
@@ -106,8 +106,6 @@ class BookController extends Controller
     // editBook -> update : http://127.0.0.1:8000/api/books/1  :: put/patch
     public function update(Request $request, $id)
     {
-        // print_r($request->get('name'));
-        // exit();
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'description' => ['required'],
@@ -115,7 +113,7 @@ class BookController extends Controller
             'author' => ['required'],
             'category' => ['required'],
             'price' => ['required', 'numeric'],
-            'released_year' => ['required','numeric','before:'.date('Y')],
+            'released_year' => ['required','numeric','before:'.date('Y'),'min:1900','max:' . date('Y')],
             'status' => ['required'],
         ]);
 
@@ -170,19 +168,6 @@ class BookController extends Controller
 
     public function searchData(Request $request)
     {
-
-        // dd($request->get('search'));
-        // $validator = Validator::make($request->all(), [
-        //     'search' => ['required']
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => $validator->errors()
-        //     ]);
-        // }
-
         $data = Book::orWhere('name', 'like', '%' . $_GET['search'] . '%')
             ->orWhere('description', 'like', '%' . $_GET['search'] . '%')
             ->orWhere('no_of_page', 'like', '%' . $_GET['search'] . '%')

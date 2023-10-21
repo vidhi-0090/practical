@@ -20,14 +20,7 @@ use App\Http\Controllers\BookController;
 |
 */
 
-
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 Route::middleware('auth:sanctum')->get('/dashboard/{id}', [HomeController::class, 'dashboard'])->name('dashboard');
-
 
 Route::middleware('auth:sanctum')->group(function () {
 

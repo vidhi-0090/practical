@@ -20,5 +20,4 @@ Route::get('{any}', function () {
     return view('home');
 })->where('any', '.*');
 
-
 require __DIR__ . '/auth.php';
