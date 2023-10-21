@@ -111,12 +111,12 @@
                 placeholder="Search"
                 v-model="search"
             /> -->
-                <input
-                    @keyup="search"
-                    type="search"
-                    placeholder="Search"
-                    v-model="search"
-                />
+            <input
+                @keyup="updateSearch"
+                type="search"
+                placeholder="Search"
+                v-model="search"
+            />
 
             <br />
             <br />
@@ -955,7 +955,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUpdated } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "../axios.js";
 import Modal from "./Modal.vue";
@@ -1030,22 +1030,6 @@ const datatable = ref(null);
 
 const user_id = ref(route.params.user_id);
 
-const searchedData = computed(() => {
-    const searchValue = search.value.toLowerCase();
-    return collection.value.filter((data) => {
-        return (
-            data.name.toLowerCase().includes(searchValue) ||
-            data.description.toLowerCase().includes(searchValue) ||
-            data.no_of_page.toString().toLowerCase().includes(searchValue) ||
-            data.author.toLowerCase().includes(searchValue) ||
-            data.category.toLowerCase().includes(searchValue) ||
-            data.price.toString().toLowerCase().includes(searchValue) ||
-            data.released_year.toString().toLowerCase().includes(searchValue) ||
-            data.status.toString().toLowerCase().includes(searchValue)
-        );
-    });
-});
-
 const setPage = async (p) => {
     try {
         const user_data = await axios.get(baseUrl.value + "api/users");
@@ -1061,7 +1045,38 @@ const collection = computed(() => {
     return paginate(bookData.value);
 });
 
+const searchedData = computed(() => {
+    const searchValue = search.value.toLowerCase();
+    const searchResults = collection.value.filter((data) => {
+        return (
+            data.name.toLowerCase().includes(searchValue) ||
+            data.description.toLowerCase().includes(searchValue) ||
+            data.no_of_page.toString().toLowerCase().includes(searchValue) ||
+            data.author.toLowerCase().includes(searchValue) ||
+            data.category.toLowerCase().includes(searchValue) ||
+            data.price.toString().toLowerCase().includes(searchValue) ||
+            data.released_year.toString().toLowerCase().includes(searchValue) ||
+            data.status.toString().toLowerCase().includes(searchValue)
+        );
+    });
+    return searchResults;
+});
+
+const updateData = reactive({});
+const updateSearch = (event) => {
+    search.value = event.target.value;
+    // updateData.value = searchedData.value;
+
+    // console.log(updateData.value);
+    // bookData.value = updateData.value;
+    // bookDataLength.value = bookData.value.length;
+
+    // updateCollection();
+    // updatePaginator();
+};
+
 const paginate = (pageData) => {
+    console.log(pageData);
     return _.slice(
         pageData,
         pagination.value.startIndex,
@@ -1460,9 +1475,7 @@ onMounted(() => {
     initDataTable();
 });
 
-onUpdated(() => {
-    updatePaginator();
-})
+watch(search, (newValue) => {});
 </script>
 
 <style lang="scss" scoped>
